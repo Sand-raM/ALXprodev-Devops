@@ -6,21 +6,38 @@ pokemon_list=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 # Base URL for the Pokémon API
 base_url="https://pokeapi.co/api/v2/pokemon/"
 
+# Error log file
+error_log="error.txt"
+
 # Loop through each Pokémon in the list
 for pokemon in "${pokemon_list[@]}"; do
     # Convert Pokémon name to lowercase for the URL
     lower_pokemon=$(echo "$pokemon" | tr '[:upper:]' '[:lower:]')
 
-    # Make the API request and save the response to a file named after the Pokémon
-    curl -s "${base_url}${lower_pokemon}/" -o "${lower_pokemon}.json"
+    # Retry logic: Attempt the API request up to 3 times
+    attempt=1
+    success=0
+    while [[ $attempt -le 3 ]]; do
+        # Make the API request
+        curl -s "${base_url}${lower_pokemon}/" -o "${lower_pokemon}.json"
 
-    # Check if the request was successful
-    if [[ $? -eq 0 ]]; then
-        echo "Data for $pokemon saved to ${lower_pokemon}.json"
-    else
-        echo "Failed to retrieve data for $pokemon"
+        # Check if the request was successful
+        if [[ $? -eq 0 ]]; then
+            echo "Data for $pokemon saved to ${lower_pokemon}.json"
+            success=1
+            break
+        else
+            echo "Attempt $attempt for $pokemon failed."
+            attempt=$((attempt + 1))
+            sleep 1 # Adding delay between retries
+        fi
+    done
+
+    # If all attempts fail, log the error
+    if [[ $success -eq 0 ]]; then
+        echo "$(date): Failed to retrieve data for $pokemon after 3 attempts." >> $error_log
     fi
 
-    # Introduce a delay to handle rate-limiting
+    # Introduce a delay to handle rate-limiting between Pokémon requests
     sleep 1
 done
