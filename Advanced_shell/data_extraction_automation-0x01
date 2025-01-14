@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Extract the Pokémon’s name, height, weight, and type
+name=$(jq -r '.name' pikachu.json)
+height=$(jq -r '.height' pikachu.json)
+weight=$(jq -r '.weight' pikachu.json)
+type=$(jq -r '.types[0].type.name' pikachu.json)
+
+# Format the height and weight for human-readable output
+formatted_height=$(awk "BEGIN {print $height/10}")
+formatted_weight=$(awk "BEGIN {print $weight/10}")
+
+# Ensure the output is formatted exactly as required
+output="$name is of type $type, weighs ${formatted_weight}kg, and is ${formatted_height}m tall."
+
+# Using sed to make a minor transformation for demonstration
+output=$(echo $output | sed 's/.$/./')
+
+# Print the formatted output
+echo "$output"
