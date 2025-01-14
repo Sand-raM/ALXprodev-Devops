@@ -30,3 +30,9 @@ END {
         print "Average Weight:", total_weight/count "kg"
     }
 }' $csv_file
+
+
+output=$(echo $output | sed 's/.$/./')
+
+# Print the formatted output
+echo "$output"
