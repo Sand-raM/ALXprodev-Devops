@@ -6,6 +6,9 @@ pokemon_list=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 # Base URL for the Pokémon API
 base_url="https://pokeapi.co/api/v2/pokemon/"
 
+# Array to store process IDs
+pids=()
+
 # Function to fetch data for a single Pokémon
 fetch_pokemon_data() {
     local pokemon=$1
@@ -20,7 +23,20 @@ fetch_pokemon_data() {
 # Loop through each Pokémon and fetch data in parallel
 for pokemon in "${pokemon_list[@]}"; do
     fetch_pokemon_data "$pokemon" &
+    pids+=($!)  # Store the process ID of the background job
 done
+
+# Function to kill all background processes on script termination
+terminate_processes() {
+    echo "Terminating all background processes..."
+    for pid in "${pids[@]}"; do
+        kill $pid 2>/dev/null
+    done
+    echo "All background processes terminated."
+}
+
+# Trap SIGINT (Ctrl+C) to call terminate_processes
+trap terminate_processes SIGINT
 
 # Wait for all background jobs to complete
 wait
